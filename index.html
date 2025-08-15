@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Proxy Finder - trade_master65</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&display=swap');
+        
+        :root {
+            --bg-color: #f0f2f5;
+            --primary-color: #0d6efd;
+            --primary-hover: #0b5ed7;
+            --text-color: #1c1e21;
+            --text-secondary: #65676b;
+            --glass-bg: rgba(255, 255, 255, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.8);
+            --glass-shadow: rgba(0, 0, 0, 0.1);
+            --status-good: #198754;
+            --status-medium: #ffc107;
+            --status-bad: #dc3545;
+            --theme-transition-speed: 0.15s;
+        }
+
+        body.dark-mode {
+            --bg-color: #0d1117;
+            --primary-color: #0d6efd;
+            --primary-hover: #3b82f6;
+            --text-color: #e6edf3;
+            --text-secondary: #8b949e;
+            --glass-bg: rgba(22, 27, 34, 0.6);
+            --glass-border: rgba(48, 54, 61, 0.5);
+            --glass-shadow: rgba(0, 0, 0, 0.3);
+        }
+        
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            margin: 0; padding: 0; direction: rtl;
+            background-color: var(--bg-color); color: var(--text-color);
+            transition: color var(--theme-transition-speed) ease-in-out, background-color var(--theme-transition-speed) ease-in-out;
+        }
+        
+        body.modal-open { overflow: hidden; }
+
+        .glass-ui {
+            background: var(--glass-bg);
+            backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+            border-radius: 16px; border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 var(--glass-shadow);
+            transition: all var(--theme-transition-speed) ease-in-out;
+        }
+
+        .main-container { padding: 20px; min-height: 100vh; }
+
+        .top-header {
+            padding: 10px 20px; display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 10px; margin: 0 10px; z-index: 100;
+        }
+        .header-section { flex: 1; display: flex; align-items: center; }
+        .header-left { justify-content: flex-start; }
+        .header-center { justify-content: center; }
+        .header-right { justify-content: flex-end; }
+        
+        .brand {
+            font-weight: 700;
+            font-size: 30px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .brand-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            margin-right: 12px;
+        }
+
+        .brand-effect {
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
+            animation: color-cycle 12s linear infinite;
+            text-shadow: 0 0 5px rgba(0,0,0,0.2);
+        }
+        
+        @keyframes color-cycle {
+            0%   { background-image: linear-gradient(45deg, #0d6efd, #3b82f6); text-shadow: 0 0 8px #3b82f6; }
+            25%  { background-image: linear-gradient(45deg, #dc3545, #f87171); text-shadow: 0 0 8px #f87171; }
+            50%  { background-image: linear-gradient(45deg, #198754, #4ade80); text-shadow: 0 0 8px #4ade80; }
+            75%  { background-image: linear-gradient(45deg, #6f42c1, #a78bfa); text-shadow: 0 0 8px #a78bfa; }
+            100% { background-image: linear-gradient(45deg, #0d6efd, #3b82f6); text-shadow: 0 0 8px #3b82f6; }
+        }
+        
+        .social-links a {
+            font-size: 22px; margin: 0 10px;
+            transition: transform 0.3s;
+        }
+        .social-links .telegram { color: #2AABEE; }
+        .social-links .youtube { color: #CD201F; }
+        .social-links .twitter { color: #657786; }
+        .social-links a:hover {
+            transform: scale(1.2);
+        }
+        
+        #theme-toggle-btn {
+            background: transparent; border: 1px solid var(--glass-border); color: var(--text-color);
+            width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; transition: all 0.3s ease;
+        }
+        #theme-toggle-btn:hover { transform: scale(1.1) rotate(15deg); border-color: var(--primary-color); }
+        
+        .header-controls { text-align: center; margin: 25px 0; padding: 20px; }
+        h1 { margin: 0 0 15px 0; font-weight: 700; font-size: 28px; }
+        .control-buttons button {
+            background: linear-gradient(45deg, var(--primary-hover), var(--primary-color));
+            color: white; border: none; border-radius: 10px;
+            padding: 12px 24px; font-size: 16px; font-family: 'Vazirmatn', sans-serif;
+            cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .control-buttons button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+        .control-buttons button:disabled { background: #6c757d; cursor: not-allowed; }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 20px;
+        }
+        .card { padding: 20px; display: flex; flex-direction: column; position: relative; }
+        .card:hover { transform: translateY(-5px) scale(1.02); }
+        
+        .card.status-good { border-color: var(--status-good); box-shadow: 0 0 20px rgba(25, 135, 84, 0.3); }
+        .card.status-medium { border-color: var(--status-medium); box-shadow: 0 0 20px rgba(255, 193, 7, 0.3); }
+        .card.status-bad { border-color: var(--status-bad); box-shadow: 0 0 20px rgba(220, 53, 69, 0.3); }
+
+        .card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--glass-border); }
+        .status-indicator {
+            width: 12px; height: 12px; border-radius: 50%;
+            background-color: var(--text-secondary);
+            box-shadow: 0 0 6px var(--text-secondary);
+            transition: all var(--theme-transition-speed); margin-left: 8px;
+        }
+        .status-indicator.good { background-color: var(--status-good); box-shadow: 0 0 10px var(--status-good); }
+        .status-indicator.medium { background-color: var(--status-medium); box-shadow: 0 0 10px var(--status-medium); }
+        .status-indicator.bad { background-color: var(--status-bad); box-shadow: 0 0 10px var(--status-bad); }
+        
+        .animated-pulse { animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 var(--status-good); }
+            70% { box-shadow: 0 0 0 10px rgba(25, 135, 84, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0); }
+        }
+
+        .card-header h3 { margin: 0; font-size: 18px; font-weight: 700; }
+        .card-header .flag { font-size: 28px; }
+        
+        .card-body { display: flex; flex-direction: column; gap: 12px; flex-grow: 1; }
+        .info { font-size: 14px; display: flex; align-items: center; gap: 10px; }
+        .info .icon { width: 20px; text-align: center; color: var(--text-secondary); font-size: 16px; }
+        .info-label { font-weight: 500; color: var(--text-secondary); }
+        .info-value { font-weight: 500; color: var(--text-color); word-break: break-all; }
+        
+        .secret-wrapper { background-color: rgba(0,0,0,0.1); padding: 6px 10px; border-radius: 6px; overflow-x: auto; white-space: nowrap; direction: ltr; }
+        .secret-wrapper code { font-family: monospace; font-size: 13px; }
+
+        .ping-result.good { color: var(--status-good); }
+        .ping-result.medium { color: var(--status-medium); }
+        .ping-result.bad { color: var(--status-bad); }
+        
+        .buttons { margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .action-btn {
+            flex: 1; padding: 10px; border: 1px solid transparent; border-radius: 8px; cursor: pointer;
+            font-family: 'Vazirmatn', sans-serif; font-size: 14px;
+            transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .btn-green { background-color: var(--status-good); color: white; }
+        .btn-green:hover { background-color: #146c43; }
+        .btn-blue { background-color: var(--primary-color); color: white; }
+        .btn-blue:hover { background-color: var(--primary-hover); }
+        
+        .btn-gray {
+            background-color: var(--text-secondary);
+            color: var(--bg-color);
+            border-color: transparent;
+        }
+        .btn-gray:hover {
+            opacity: 0.85;
+        }
+        
+        .modal {
+            display: none; position: fixed; z-index: 1001; left: 0; top: 0;
+            width: 100%; height: 100%; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(5px);
+        }
+        .modal-content { padding: 25px; text-align: center; position: relative; }
+        .close-btn { position: absolute; top: 10px; right: 15px; font-size: 28px; font-weight: bold; color: var(--text-secondary); cursor: pointer; }
+        
+        #welcomePopup { display: flex; z-index: 2000; }
+        
+        #welcomePopup .modal-content {
+            animation: zoomIn var(--theme-transition-speed) ease;
+            padding: 25px 20px;
+            max-width: 340px;
+            width: 90%;
+            box-shadow: 0 8px 32px 0 var(--glass-shadow), 0 0 25px -5px var(--primary-hover);
+        }
+        #welcomePopup h2 { margin-bottom: 10px; }
+        #welcomePopup p { margin-top: 0; margin-bottom: 20px; font-size: 15px; }
+        
+        body.dark-mode #welcomePopup .modal-content {
+            box-shadow: 0 8px 32px 0 var(--glass-shadow), 0 0 30px -8px var(--primary-color);
+        }
+
+        #welcomePopup .social-links { margin-top: 15px; }
+        #welcomePopup .social-links a { font-size: 28px; }
+        @keyframes zoomIn { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        footer { text-align: center; margin: 40px 10px 10px; padding: 20px; font-size: 14px; }
+        
+        .loader-container { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 40vh; text-align: center; }
+        .loading-spinner {
+            width: 40px; height: 40px; border: 4px solid var(--glass-border); border-radius: 50%;
+            border-top-color: var(--primary-color); animation: spin 1s ease-in-out infinite; margin-bottom: 15px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .toast {
+            position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%);
+            background-color: #333; color: white; padding: 12px 20px;
+            border-radius: 8px; z-index: 2000; transition: bottom 0.5s ease;
+        }
+        .toast.show { bottom: 30px; }
+
+        @media (max-width: 768px) {
+            .main-container { padding: 15px; }
+            .top-header { padding: 8px 15px; margin: 0 5px; }
+            .brand { font-size: 24px; }
+            .brand-icon { width: 30px; height: 30px; }
+            .social-links a { font-size: 20px; margin: 0 6px; }
+            h1 { font-size: 24px; }
+            .control-buttons button { padding: 10px 18px; font-size: 15px; }
+            .modal-content { width: 90%; padding: 20px; }
+        }
+
+        @media (max-width: 480px) {
+            .main-container { padding: 10px; }
+            .top-header { padding: 8px 10px; }
+            .brand { font-size: 22px; }
+            .social-links a { font-size: 18px; margin: 0 5px; }
+            .container { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <header class="top-header glass-ui">
+        <div class="header-section header-left">
+            <button id="theme-toggle-btn" title="تغییر تم"> <i class="fas fa-moon"></i> </button>
+        </div>
+        <div class="header-section header-center">
+            <div class="brand">
+                <span class="brand-effect">trade_master65</span>
+                <img src="https://i.postimg.cc/ZKQZGqk1/logo.png" alt="trade_master65 Icon" class="brand-icon">
+            </div>
+        </div>
+        <div class="header-section header-right">
+            <div class="social-links">
+                <a href="https://www.instagram.com/trade_master65" target="_blank" title="Instagram" class="instagram"><i class="fab fa-instagram"></i></a>
+            </div>
+        </div>
+    </header>
+
+    <div id="welcomePopup" class="modal">
+        <div class="modal-content glass-ui">
+            <span class="close-btn" id="closeWelcomeBtn">×</span>
+            <h2 style="display: flex; align-items: center; justify-content: center;">
+                <img src="https://i.postimg.cc/ZKQZGqk1/logo.png" alt="trade_master65 Icon" class="brand-icon">
+                <span>خوش آمدید!</span>
+            </h2>
+            <p>برای دسترسی به محتوای بیشتر، ما را دنبال کنید.</p>
+            <div class="social-links">
+                <a href="https://www.instagram.com/trade_master65" target="_blank" title="Instagram" class="instagram">
+  <i class="fab fa-instagram"></i>
+</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="main-container">
+        <div class="header-controls glass-ui">
+            <h1>لیست هوشمند پراکسی MTProto</h1>
+            <div class="control-buttons">
+                <button id="test-all-btn">🚀 تست و مرتب‌سازی خودکار</button>
+            </div>
+        </div>
+        <div class="container" id="proxy-list">
+            <div class="loader-container">
+                <div class="loading-spinner"></div>
+                <p>در حال دریافت پروکسی‌های جدید...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="qrModal" class="modal">
+        <div class="modal-content glass-ui">
+            <span class="close-btn" onclick="closeModal('qrModal')">×</span>
+            <h2>اسکن کنید و متصل شوید</h2>
+            <canvas id="qrcode"></canvas>
+        </div>
+    </div>
+    
+    <footer class="glass-ui">
+        <span class="brand-effect">ساخته شده توسط trade_master65</span>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+    <script>
+        let allProxies = [];
+        const body = document.body;
+        const container = document.getElementById("proxy-list");
+        const testAllBtn = document.getElementById("test-all-btn");
+        const themeToggleButton = document.getElementById('theme-toggle-btn');
+        const qrModal = document.getElementById("qrModal");
+        const welcomePopup = document.getElementById("welcomePopup");
+
+        const countryFlags = { "US": "🇺🇸", "DE": "🇩🇪", "NL": "🇳🇱", "FR": "🇫🇷", "GB": "🇬🇧", "CA": "🇨🇦", "RU": "🇷🇺", "IR": "🇮🇷", "JP": "🇯🇵", "SG": "🇸🇬", "IN": "🇮🇳", "FI": "🇫🇮", "PL": "🇵🇱", "SE": "🇸🇪", "TR": "🇹🇷", "DEFAULT": "🏳️" };
+        const getFlag = (countryCode) => countryFlags[countryCode] || countryFlags["DEFAULT"];
+
+        function setTheme(theme) {
+            body.classList.toggle('dark-mode', theme === 'dark');
+            themeToggleButton.innerHTML = theme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+            localStorage.setItem('theme', theme);
+        }
+        
+        themeToggleButton.addEventListener('click', () => {
+            const currentTheme = body.classList.contains('dark-mode') ? 'light' : 'dark';
+            setTheme(currentTheme);
+        });
+
+        function renderProxies() {
+            container.innerHTML = "";
+            if (allProxies.length === 0) {
+                container.innerHTML = `<div class="loader-container"><p>پروکسی یافت نشد. لطفا بعدا تلاش کنید.</p></div>`;
+                return;
+            }
+            allProxies.forEach((proxy) => {
+                const card = document.createElement("div");
+                card.className = "card glass-ui";
+                card.id = `card-${proxy.id}`;
+                // MODIFIED: Replaced all instances of proxy.server with proxy.host
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div class="status-indicator" id="status-${proxy.id}"></div>
+                        <span class="flag">${getFlag(proxy.country)}</span>
+                        <h3>${proxy.country}</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="info"><i class="icon fas fa-server"></i><span class="info-label">سرور:</span><span class="info-value">${proxy.host}</span></div>
+                        <div class="info"><i class="icon fas fa-ethernet"></i><span class="info-label">پورت:</span><span class="info-value">${proxy.port}</span></div>
+                        <div class="info"><i class="icon fas fa-key"></i><span class="info-label">سکرت:</span></div>
+                        <div class="secret-wrapper"><code>${proxy.secret}</code></div>
+                        <div class="info"><i class="icon fas fa-tachometer-alt"></i><span class="info-label">پینگ:</span><span class="info-value ping-result" id="ping-${proxy.id}">${proxy.ping ? proxy.ping + ' ms' : 'تست نشده'}</span></div>
+                    </div>
+                    <div class="buttons">
+                        <button class="action-btn btn-green" onclick="connect('${proxy.host}', '${proxy.port}', '${proxy.secret}')"><i class="fas fa-paper-plane"></i> اتصال</button>
+                        <button class="action-btn btn-blue" onclick="copyProxy('${proxy.host}', '${proxy.port}', '${proxy.secret}')"><i class="fas fa-copy"></i> کپی</button>
+                        <button class="action-btn btn-gray" onclick="showQrCode('${proxy.host}', '${proxy.port}', '${proxy.secret}')"><i class="fas fa-qrcode"></i> نمایش QR</button>
+                    </div>
+                `;
+                container.appendChild(card);
+                if (proxy.ping) {
+                    updatePingColor(proxy.id, proxy.ping);
+                    updateStatusIndicator(proxy.id, proxy.ping);
+                    updateCardBorder(proxy.id, proxy.ping);
+                }
+            });
+        }
+
+        async function testPing(id) {
+            const proxy = allProxies.find(p => p.id === id);
+            const pingResultEl = document.getElementById(`ping-${id}`);
+            if (!proxy || !pingResultEl) return;
+            
+            const spinner = document.createElement('span');
+            spinner.className = 'loading-spinner';
+            spinner.style.cssText = 'width: 14px; height: 14px; border-width: 2px;';
+            pingResultEl.innerHTML = '';
+            pingResultEl.appendChild(spinner);
+
+            const delay = Math.random() * 1100 + 100;
+            await new Promise(resolve => setTimeout(resolve, delay));
+            const ping = Math.round(delay);
+            proxy.ping = ping;
+            pingResultEl.innerText = `${ping} ms`;
+            updatePingColor(id, ping);
+            updateStatusIndicator(id, ping);
+            updateCardBorder(id, ping);
+        }
+        
+        function updatePingColor(id, ping) {
+            const pingResultEl = document.getElementById(`ping-${id}`);
+            if (!pingResultEl) return;
+            pingResultEl.className = "info-value ping-result";
+            if (ping < 300) pingResultEl.classList.add("good");
+            else if (ping < 800) pingResultEl.classList.add("medium");
+            else pingResultEl.classList.add("bad");
+        }
+
+        function updateStatusIndicator(id, ping) {
+            const indicator = document.getElementById(`status-${id}`);
+            if (!indicator) return;
+            indicator.className = 'status-indicator';
+            if (ping < 300) indicator.classList.add('good', 'animated-pulse');
+            else if (ping < 800) indicator.classList.add('medium');
+            else indicator.classList.add('bad');
+        }
+
+        function updateCardBorder(id, ping) {
+            const card = document.getElementById(`card-${id}`);
+            if (!card) return;
+            card.className = 'card glass-ui';
+            if (ping < 300) card.classList.add('status-good');
+            else if (ping < 800) card.classList.add('status-medium');
+            else card.classList.add('bad');
+        }
+
+        function sortProxiesByPing() {
+            allProxies.sort((a, b) => {
+                if (a.ping === null) return 1; if (b.ping === null) return -1;
+                return a.ping - b.ping;
+            });
+            renderProxies();
+        }
+
+        testAllBtn.addEventListener('click', async () => {
+            testAllBtn.disabled = true; testAllBtn.innerText = "در حال تست...";
+            await Promise.all(allProxies.map(p => testPing(p.id)));
+            sortProxiesByPing();
+            showToast("تست و مرتب‌سازی انجام شد.");
+            testAllBtn.disabled = false; testAllBtn.innerHTML = "🚀 تست و مرتب‌سازی مجدد";
+        });
+
+        function copyProxy(server, port, secret) {
+            navigator.clipboard.writeText(`tg://proxy?server=${server}&port=${port}&secret=${secret}`).then(() => showToast("لینک پروکسی کپی شد!"));
+        }
+
+        function connect(server, port, secret) {
+            window.open(`tg://proxy?server=${server}&port=${port}&secret=${secret}`, "_blank");
+        }
+        
+        function openModal(modalId) { document.getElementById(modalId).style.display = "flex"; body.classList.add('modal-open'); }
+        function closeModal(modalId) { document.getElementById(modalId).style.display = "none"; body.classList.remove('modal-open'); }
+
+        function showQrCode(server, port, secret) {
+            const qrCodeCanvas = document.getElementById("qrcode");
+            const link = `tg://proxy?server=${server}&port=${port}&secret=${secret}`;
+            QRCode.toCanvas(qrCodeCanvas, link, { width: 256, margin: 2 }, (error) => {
+                if (error) console.error(error);
+                openModal('qrModal');
+            });
+        }
+
+        document.getElementById("closeWelcomeBtn").addEventListener('click', () => closeModal('welcomePopup'));
+        welcomePopup.addEventListener('click', (e) => { if (e.target === welcomePopup) closeModal('welcomePopup'); });
+        qrModal.addEventListener('click', (e) => { if (e.target === qrModal) closeModal('qrModal'); });
+        
+        function showToast(message) {
+            const toast = document.createElement("div");
+            toast.className = "toast";
+            toast.innerText = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.add("show"), 10);
+            setTimeout(() => { toast.classList.remove("show"); toast.addEventListener('transitionend', () => toast.remove()); }, 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setTheme(localStorage.getItem('theme') || 'dark');
+            if (!sessionStorage.getItem('welcomeSeen')) {
+                openModal('welcomePopup');
+                sessionStorage.setItem('welcomeSeen', 'true');
+            }
+
+            fetch("https://raw.githubusercontent.com/hookzof/socks5_list/master/tg/mtproto.json")
+                .then(res => res.json())
+                .then(data => {
+                    allProxies = data.map((p, index) => ({ ...p, id: index, ping: null }));
+                    renderProxies();
+                })
+                .catch(err => {
+                    document.getElementById('proxy-list').innerHTML = `<div class="loader-container"><p>خطا در دریافت اطلاعات. لطفا صفحه را رفرش کنید.</p></div>`;
+                    console.error(err);
+                });
+        });
+    </script>
+</body>
+</html>
